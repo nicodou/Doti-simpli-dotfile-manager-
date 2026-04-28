@@ -6,7 +6,7 @@
 
 ```bash
 # Copiar el archivo a tu directorio home (opcional pero recomendado)
-cp /Users/nicodou/Desktop/gestor\ de\ configuración/doti_completion.zsh ~/.doti_completion.zsh
+cp /path/to/doti/doti_completion.zsh ~/.doti_completion.zsh
 ```
 
 ### 2. Añadir la configuración a ~/.zshrc
@@ -51,6 +51,7 @@ Deberías ver los subcomandos disponibles:
 - unlink
 - edit
 - doctor
+- help
 
 También puedes probar:
 
@@ -60,6 +61,7 @@ doti --<TAB>
 
 Para ver las opciones globales:
 - --dry-run
+- --hooks-strict
 - --help
 - -h
 
@@ -75,7 +77,7 @@ Para ver las opciones globales:
 - `doti edit <TAB>` → Autocompleta rutas de archivos
 
 ### Opciones globales
-- `doti --<TAB>` → Muestra --dry-run, --help, -h
+- `doti --<TAB>` → Muestra --dry-run, --hooks-strict, --help, -h
 
 ## Solución de problemas
 

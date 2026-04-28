@@ -1,6 +1,23 @@
 # Sistema de Hooks para doti
 
-El sistema de hooks permite ejecutar scripts personalizados antes o después de comandos clave de doti.
+El sistema de hooks permite ejecutar scripts personalizados antes o después de comandos clave.
+
+## Contrato de Hooks
+
+Los hooks reciben información a través de **argumentos de línea de comandos** y **variables de entorno**:
+
+### Variables de Entorno Disponibles
+- `DOTI_ORIGINAL_PATH` - Ruta original del archivo
+- `DOTI_STORAGE_PATH` - Ruta en storage
+- `DOTI_OPERATION` - Operación actual (add, unlink, deploy)
+- `DOTI_COUNT` - Número de archivos (solo deploy)
+- `DOTI_HOOK_NAME` - Nombre del hook actual
+- `DOTI_STORAGE_DIR` - Directorio de storage
+- `DOTI_CONFIG_FILE` - Archivo de configuración
+
+### Argumentos de Línea de Comandos
+- `$1` - Original path (disponible en add/unlink hooks)
+- `$2` - Storage path (disponible en add/unlink hooks)
 
 ## Estructura
 
@@ -28,8 +45,13 @@ Los hooks se guardan en: `~/.doti/hooks/`
 #!/bin/bash
 # Backup automático de archivos antes de agregarlos a doti
 
-FILE_PATH="$1"
+# Usar variables de entorno y argumentos
+FILE_PATH="${DOTI_ORIGINAL_PATH:-$1}"
 BACKUP_DIR="$HOME/.doti/backups"
+
+echo "Hook: $DOTI_HOOK_NAME"
+echo "Operation: $DOTI_OPERATION"
+echo "File: $FILE_PATH"
 
 # Crear directorio de backups si no existe
 mkdir -p "$BACKUP_DIR"
@@ -37,11 +59,7 @@ mkdir -p "$BACKUP_DIR"
 # Crear backup con timestamp
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_FILE="$BACKUP_DIR/$(basename "$FILE_PATH")_$TIMESTAMP"
-
-if [ -f "$FILE_PATH" ]; then
-    cp "$FILE_PATH" "$BACKUP_FILE"
-    echo "Backup creado: $BACKUP_FILE"
-fi
+cp "$FILE_PATH" "$BACKUP_FILE" 2>/dev/null && echo "Backup: $BACKUP_FILE"
 ```
 
 ### 2. Notificación después de deploy (post-deploy.sh)
@@ -49,6 +67,10 @@ fi
 ```bash
 #!/bin/bash
 # Notificar cuando se completó el deploy
+
+echo "Hook: $DOTI_HOOK_NAME"
+echo "Operation: $DOTI_OPERATION"
+echo "Deployed files: $DOTI_COUNT"
 
 echo "==> doti deploy completado"
 echo "Symlinks actualizados: $(find ~ -maxdepth 1 -type l -lname "*.doti*" | wc -l)"
@@ -60,7 +82,10 @@ echo "Symlinks actualizados: $(find ~ -maxdepth 1 -type l -lname "*.doti*" | wc 
 #!/bin/bash
 # Validar que los archivos sean seguros antes de agregarlos
 
-FILE_PATH="$1"
+FILE_PATH="${DOTI_ORIGINAL_PATH:-$1}"
+
+echo "Hook: $DOTI_HOOK_NAME"
+echo "Validating file: $FILE_PATH"
 
 # Verificar que no sea un archivo binario ejecutable
 if file "$FILE_PATH" | grep -q "executable"; then
@@ -76,6 +101,8 @@ if [ "$FILE_SIZE" -gt "$MAX_SIZE" ]; then
     echo "Error: Archivo demasiado grande (máximo 1MB)"
     exit 1
 fi
+
+echo "File validation passed"
 ```
 
 ### 4. Sincronización con Git (post-add.sh)
@@ -83,6 +110,10 @@ fi
 ```bash
 #!/bin/bash
 # Commitear cambios automáticamente después de agregar archivos
+
+echo "Hook: $DOTI_HOOK_NAME"
+echo "Storage dir: $DOTI_STORAGE_DIR"
+echo "Config file: $DOTI_CONFIG_FILE"
 
 DOTI_DIR="$HOME/.doti"
 cd "$DOTI_DIR"
@@ -101,12 +132,70 @@ fi
 #!/bin/bash
 # Limpiar symlinks rotos antes de deploy
 
+echo "Hook: $DOTI_HOOK_NAME"
+echo "Operation: $DOTI_OPERATION"
+echo "Files to deploy: $DOTI_COUNT"
+
 echo "Limpiando symlinks rotos..."
 
 # Encontrar y eliminar symlinks rotos en el home
 find ~ -maxdepth 1 -type l ! -exec test -e {} \; -delete 2>/dev/null
 
 echo "Limpieza completada"
+```
+
+### 6. Hook con contexto completo (post-unlink.sh)
+
+```bash
+#!/bin/bash
+# Ejemplo completo usando todas las variables disponibles
+
+echo "=== Hook Information ==="
+echo "Hook Name: $DOTI_HOOK_NAME"
+echo "Operation: $DOTI_OPERATION"
+echo "Original Path: $DOTI_ORIGINAL_PATH"
+echo "Storage Path: $DOTI_STORAGE_PATH"
+echo "Storage Dir: $DOTI_STORAGE_DIR"
+echo "Config File: $DOTI_CONFIG_FILE"
+
+# Argumentos tradicionales (compatibilidad)
+echo "Argument 1: $1"
+echo "Argument 2: $2"
+
+# Lógica específica
+if [ "$DOTI_OPERATION" = "unlink" ]; then
+    echo "Unlink operation detected"
+    if [ "$2" != "" ]; then
+        echo "Storage file: $(basename "$2")"
+    fi
+fi
+```
+
+## Modo Estricto
+
+Usa `--hooks-strict` para detener la ejecución si los hooks pre-* fallan:
+
+```bash
+./doti --hooks-strict add ~/.bashrc
+./doti --hooks-strict deploy
+./doti --hooks-strict unlink ~/.vimrc
+```
+
+## Debugging de Hooks
+
+Para ver qué información reciben los hooks:
+
+```bash
+#!/bin/bash
+# debug-hook.sh - Coloca este archivo como cualquier hook
+
+echo "=== Environment Variables ==="
+env | grep DOTI_
+
+echo "=== Command Arguments ==="
+echo "Argument 1: $1"
+echo "Argument 2: $2"
+echo "All arguments: $@"
 ```
 
 ## Instalación de Hooks

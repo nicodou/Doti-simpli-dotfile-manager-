@@ -13,11 +13,13 @@ _doti() {
     'unlink:Elimina symlink y restaura archivo'
     'edit:Edita un archivo gestionado'
     'doctor:Verifica estado de los symlinks'
+    'help:Muestra ayuda sobre comandos'
   )
 
   local -a global_options
   global_options=(
     '--dry-run:Simulate operations without making changes'
+    '--hooks-strict:Stop execution if pre-hooks fail'
     '--help:Show help message'
     '-h:Show help message'
   )
@@ -46,7 +48,7 @@ _doti() {
         edit)
           _files
           ;;
-        deploy|list|doctor|init)
+        deploy|list|doctor|init|help)
           # No additional arguments needed for these commands
           ;;
       esac

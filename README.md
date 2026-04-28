@@ -24,23 +24,6 @@ chmod +x doti
 ├── hooks/       # Scripts personalizados (ver sección Hooks)
 └── config.json  # Configuración y mapeo de symlinks
 ```
-## Uso Multiplataforma
-
-`doti` ha sido diseñado para ser compatible con Windows, macOS y Linux. Dependiendo de tu sistema operativo, el método de ejecución varía ligeramente:
-
-* **macOS / Linux**: Utiliza el script ejecutable `doti` (sin extensión).
-    1. Asegúrate de darle permisos de ejecución la primera vez:
-       ```bash
-       chmod +x doti
-       ```
-    2. Ejecuta los comandos usando: `./doti <comando>`
-
-* **Windows**: Utiliza el archivo `doti.bat`.
-    * Este script gestiona automáticamente la llamada a Python.
-    * Ejecuta los comandos simplemente escribiendo: `doti <comando>` (siempre que la carpeta del proyecto esté en tu PATH).
-
-> **Tip para desarrolladores:** Si añades el directorio donde clonaste `doti` a tu variable de entorno `$PATH` (o al *Path* de sistema en Windows), podrás ejecutar `doti` desde cualquier carpeta de tu terminal sin necesidad de escribir `./` ni preocuparte por la extensión.
-
 
 ## Comandos
 
@@ -61,6 +44,9 @@ Agrega un archivo a doti. Mueve el archivo a `~/.doti/storage/` y crea un symlin
 ./doti deploy
 ```
 Recrea todos los symlinks desde la configuración guardada en `config.json`.
+- **Seguridad**: Solo recrea symlinks gestionados, nunca sobrescribe archivos reales
+- **Detección de conflictos**: Muestra advertencias para archivos existentes
+- **Resumen**: Reporta deployed, conflicted, skipped, failed
 
 ### list
 ```bash
@@ -74,6 +60,8 @@ Muestra todos los archivos gestionados con su ruta original y su ubicación en s
 ```
 Elimina el symlink y opcionalmente restaura el archivo a su ubicación original.
 - `--no-restore`: No restaura el archivo desde storage.
+- **Seguridad**: Solo opera sobre symlinks gestionados por doti
+- **Validación**: Rechaza eliminar archivos reales o symlinks no gestionados
 
 ### edit
 ```bash
@@ -104,6 +92,19 @@ Todos los comandos que modifican el sistema de archivos soportan el modo `--dry-
 ```
 
 El modo `--dry-run` simula las operaciones sin realizar cambios reales, mostrando exactamente lo que haría doti.
+
+## Opción Global: Hooks Strict
+
+Controla el comportamiento cuando los hooks fallan:
+
+```bash
+./doti --hooks-strict add ~/.bashrc
+./doti --hooks-strict deploy
+./doti --hooks-strict unlink ~/.vimrc
+```
+
+- **Modo normal**: Los hooks fallidos muestran advertencias pero no detienen la ejecución
+- **Modo strict**: Los hooks `pre-*` que fallan detienen el comando completamente
 
 ## Sistema de Hooks
 
@@ -160,6 +161,35 @@ Ahora puedes usar `doti <TAB>` para autocompletar comandos y `doti add <TAB>` pa
 - **Python 3+**: Requiere Python 3 instalado en el sistema
 - **Sistema operativo**: Compatible con macOS, Linux y otros sistemas Unix-like
 - **Permisos**: Requiere permisos de lectura/escritura en el directorio home
+- **Symlinks**: Requiere capacidad para crear enlaces simbólicos (ver limitaciones Windows)
+
+## Limitaciones de Windows
+
+**Symlinks en Windows**: La creación de symlinks en Windows requiere:
+- **Permisos de administrador** o
+- **Modo Desarrollador** activado en Windows 10/11
+
+**Síntomas si no tienes permisos**:
+```
+Error: Failed to create symlink: [WinError 1314]
+A required privilege is not held by the client
+```
+
+**Soluciones**:
+1. **Ejecutar como Administrador**: Abre PowerShell/CMD como administrador
+2. **Activar Modo Desarrollador**: Configuración > Actualización y seguridad > Para desarrolladores > Modo desarrollador
+3. **Usar Git Bash**: Git Bash puede crear symlinks sin permisos elevados
+
+**Comprobación de permisos**:
+```powershell
+# En PowerShell (como administrador)
+New-Item -ItemType SymbolicLink -Path "test-link" -Target "target-file"
+```
+
+Si no puedes obtener permisos de administrador, considera usar alternativas como:
+- **Hard links** (limitados al mismo volumen)
+- **Copias de archivos** (sin symlinks)
+- **WSL** (Windows Subsystem for Linux)
 
 ## Flujo de Trabajo Típico
 
@@ -190,8 +220,12 @@ Ahora puedes usar `doti <TAB>` para autocompletar comandos y `doti add <TAB>` pa
 
 - **Manejo de conflictos**: Si un archivo con el mismo nombre ya existe en storage, doti añade un sufijo numérico
 - **Symlinks seguros**: Verifica que los symlinks apunten a los archivos correctos en storage
+- **Protección de archivos**: `deploy` y `unlink` solo operan sobre symlinks gestionados, nunca borran archivos reales
 - **Recuperación**: El comando `unlink` puede restaurar archivos a su ubicación original
-- **Validación**: El comando `doctor` detecta problemas comunes y sugiere soluciones
+- **Validación robusta**: El comando `doctor` detecta problemas comunes con diagnóstico preciso
+- **Detección de conflictos**: `deploy` muestra advertencias claras cuando encuentra archivos reales o symlinks no gestionados
+- **Sistema de hooks**: Automatización personalizada con variables de entorno y argumentos
+- **Modo estricto**: Control granular sobre el comportamiento de hooks fallidos
 
 ## Licencia
 
