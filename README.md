@@ -24,6 +24,23 @@ chmod +x doti
 ├── hooks/       # Scripts personalizados (ver sección Hooks)
 └── config.json  # Configuración y mapeo de symlinks
 ```
+## Uso Multiplataforma
+
+`doti` ha sido diseñado para ser compatible con Windows, macOS y Linux. Dependiendo de tu sistema operativo, el método de ejecución varía ligeramente:
+
+* **macOS / Linux**: Utiliza el script ejecutable `doti` (sin extensión).
+    1. Asegúrate de darle permisos de ejecución la primera vez:
+       ```bash
+       chmod +x doti
+       ```
+    2. Ejecuta los comandos usando: `./doti <comando>`
+
+* **Windows**: Utiliza el archivo `doti.bat`.
+    * Este script gestiona automáticamente la llamada a Python.
+    * Ejecuta los comandos simplemente escribiendo: `doti <comando>` (siempre que la carpeta del proyecto esté en tu PATH).
+
+> **Tip para desarrolladores:** Si añades el directorio donde clonaste `doti` a tu variable de entorno `$PATH` (o al *Path* de sistema en Windows), podrás ejecutar `doti` desde cualquier carpeta de tu terminal sin necesidad de escribir `./` ni preocuparte por la extensión.
+
 
 ## Comandos
 
