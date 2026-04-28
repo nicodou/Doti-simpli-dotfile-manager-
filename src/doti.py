@@ -561,7 +561,29 @@ def main():
     # Comando doctor
     subparsers.add_parser("doctor", help="Verifica estado de los symlinks")
     
+    # Comando help explícito (estilo git)
+    help_parser = subparsers.add_parser("help", help="Muestra ayuda sobre comandos")
+    help_parser.add_argument("command", nargs="?", help="Comando específico para mostrar ayuda")
+    
     args = parser.parse_args()
+    
+    # Manejar comando help explícito
+    if args.command == "help":
+        if hasattr(args, 'command') and args.command:
+            # Mostrar ayuda de un comando específico
+            try:
+                subparser = subparsers.choices.get(args.command)
+                if subparser:
+                    subparser.print_help()
+                else:
+                    print(f"Comando '{args.command}' no encontrado")
+                    parser.print_help()
+            except Exception:
+                parser.print_help()
+        else:
+            # Mostrar ayuda general
+            parser.print_help()
+        sys.exit(0)
     
     if not args.command:
         parser.print_help()

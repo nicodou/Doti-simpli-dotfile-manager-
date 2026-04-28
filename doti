@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# doti - Wrapper script for doti CLI utility
+# This script detects its location and executes the Python script
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Path to the Python script
+DOTI_PYTHON="$SCRIPT_DIR/src/doti.py"
+
+# Check if Python 3 is available
+if ! command -v python3 &> /dev/null; then
+    echo "Error: python3 is not installed or not in PATH" >&2
+    echo "Please install Python 3 to use doti" >&2
+    exit 1
+fi
+
+# Check if the Python script exists
+if [ ! -f "$DOTI_PYTHON" ]; then
+    echo "Error: doti.py not found at $DOTI_PYTHON" >&2
+    echo "Please ensure the script is in the correct location" >&2
+    exit 1
+fi
+
+# Execute the Python script with all arguments
+exec python3 "$DOTI_PYTHON" "$@"
