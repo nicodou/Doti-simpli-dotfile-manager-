@@ -6,7 +6,7 @@
 
 ```bash
 # Copiar el archivo a tu directorio home (opcional pero recomendado)
-cp /path/to/doti/doti_completion.zsh ~/.doti_completion.zsh
+cp doti_completion.zsh ~/.doti_completion.zsh
 ```
 
 ### 2. Añadir la configuración a ~/.zshrc
@@ -25,6 +25,10 @@ if [[ -f ~/.doti_completion.zsh ]]; then
   source ~/.doti_completion.zsh
 fi
 ```
+
+### Nota sobre instalación
+
+Si instalaste doti con `pip install -e .`, el comando `doti` está disponible globalmente y el autocompletado funcionará inmediatamente después de recargar la configuración.
 
 ### 3. Recargar la configuración de Zsh
 

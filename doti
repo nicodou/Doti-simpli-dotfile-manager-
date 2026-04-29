@@ -3,11 +3,11 @@
 # doti - Wrapper script for doti CLI utility
 # This script detects its location and executes the Python script
 
-# Get the directory where this script is located
+# Get the absolute directory where this script is located (handles spaces)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Path to the Python script
-DOTI_PYTHON="$SCRIPT_DIR/src/doti.py"
+# Path to the Python script (properly quoted for spaces)
+DOTI_PYTHON="${SCRIPT_DIR}/src/main.py"
 
 # Check if Python 3 is available
 if ! command -v python3 &> /dev/null; then
@@ -18,10 +18,10 @@ fi
 
 # Check if the Python script exists
 if [ ! -f "$DOTI_PYTHON" ]; then
-    echo "Error: doti.py not found at $DOTI_PYTHON" >&2
+    echo "Error: main.py not found at $DOTI_PYTHON" >&2
     echo "Please ensure the script is in the correct location" >&2
     exit 1
 fi
 
-# Execute the Python script with all arguments
+# Execute the Python script with all arguments (properly quoted)
 exec python3 "$DOTI_PYTHON" "$@"

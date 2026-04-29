@@ -8,14 +8,60 @@
 - **Estilo Unix**: Comandos predecibles y directos.
 - **Extensible**: Sistema de *hooks* para automatización personalizada.
 
+## Arquitectura
+
+doti sigue una arquitectura moderna de paquetes Python:
+
+```
+doti/
+├── src/
+│   ├── doti/
+│   │   ├── __init__.py      # API pública del paquete
+│   │   ├── core.py          # Lógica de negocio principal
+│   │   └── utils.py         # Utilidades auxiliares
+│   └── main.py              # Punto de entrada CLI
+├── tests/                   # Suite de tests completa
+│   ├── test_core.py          # Tests de funcionalidad principal
+│   ├── test_robustness.py   # Tests de características server-grade
+│   └── conftest.py          # Configuración de pytest
+├── pyproject.toml           # Configuración moderna del paquete
+└── README.md               # Documentación del proyecto
+```
+
+### Características Server-Grade
+- **Integridad SHA-256**: Checksums para todos los archivos gestionados
+- **Validación de permisos**: Seguridad proactiva para archivos sensibles
+- **Auditoría completa**: Registro de operaciones en `audit.log`
+- **Escritura atómica**: Configuración a prueba de corrupción
+- **Testing completo**: Suite de 46 tests con pytest
+
 ## Instalación
 
-1. Clona el repositorio o descarga los archivos del proyecto
-2. Haz el wrapper ejecutable:
+### Método recomendado: pip install
 ```bash
-chmod +x doti
+# Instalar en modo desarrollo (editable)
+pip install -e .
+
+# O instalar globalmente
+pip install .
 ```
-3. Asegúrate de tener Python 3 instalado en el sistema
+
+### Método desarrollo: Clonación
+```bash
+# 1. Clona el repositorio
+git clone <repository-url> doti
+cd doti
+
+# 2. Instala el paquete
+pip install -e .
+
+# 3. Verifica instalación
+doti --help
+```
+
+### Requisitos
+- **Python 3.7+** requerido
+- **pip** para instalación de paquetes
 
 ## Estructura de directorios
 ```text
@@ -193,31 +239,55 @@ Si no puedes obtener permisos de administrador, considera usar alternativas como
 
 ## Flujo de Trabajo Típico
 
-1. **Inicialización**:
+### 1. Instalación
 ```bash
-./doti init
+# Clonar e instalar
+git clone <repository-url> doti
+cd doti
+pip install -e .
 ```
 
-2. **Agregar archivos**:
+### 2. Inicialización
 ```bash
-./doti add ~/.bashrc
-./doti add ~/.vimrc
-./doti add ~/.gitconfig
+doti init
 ```
 
-3. **Verificar estado**:
+### 3. Agregar archivos
 ```bash
-./doti doctor
-./doti list
+doti add ~/.bashrc
+doti add ~/.vimrc
+doti add ~/.gitconfig
 ```
 
-4. **Despliegue en nuevas máquinas**:
+### 4. Verificar estado
 ```bash
-./doti deploy
+doti doctor
+doti list
 ```
 
-## Características Avanzadas
+### 5. Despliegue en nuevas máquinas
+```bash
+doti deploy
+```
 
+### 6. Auditoría y mantenimiento
+```bash
+# Verificar integridad de archivos
+cat ~/.doti/audit.log
+
+# Validar configuración
+doti doctor
+```
+
+## Características Server-Grade
+
+### Seguridad e Integridad
+- **Integridad SHA-256**: Checksums automáticos para todos los archivos gestionados
+- **Validación de permisos**: Rechazo proactivo de archivos sensibles con permisos inseguros
+- **Auditoría completa**: Registro detallado de todas las operaciones en `audit.log`
+- **Escritura atómica**: Configuración protegida contra corrupción con escritura atómica
+
+### Gestión Avanzada
 - **Manejo de conflictos**: Si un archivo con el mismo nombre ya existe en storage, doti añade un sufijo numérico
 - **Symlinks seguros**: Verifica que los symlinks apunten a los archivos correctos en storage
 - **Protección de archivos**: `deploy` y `unlink` solo operan sobre symlinks gestionados, nunca borran archivos reales
@@ -227,34 +297,32 @@ Si no puedes obtener permisos de administrador, considera usar alternativas como
 - **Sistema de hooks**: Automatización personalizada con variables de entorno y argumentos
 - **Modo estricto**: Control granular sobre el comportamiento de hooks fallidos
 
+### Calidad y Testing
+- **Suite completa**: 46 tests automatizados con pytest
+- **Cobertura total**: Tests para funcionalidad básica y características server-grade
+- **Integración continua**: Testing de integración y manejo de errores
+
 ## Licencia
 
 MIT License - Libre para usar y modificar.
 
 ## Uso Global
 
-Para ejecutar `doti` desde cualquier ubicación sin necesidad del prefijo `./`, añade el directorio del proyecto a tu PATH:
+Después de la instalación con `pip install -e .`, el comando `doti` está disponible globalmente en tu sistema.
 
-### Para Zsh (macOS por defecto)
-Añade a tu `~/.zshrc`:
-```zsh
-export PATH="/path/to/doti:$PATH"
-```
-
-### Para Bash
-Añade a tu `~/.bashrc`:
+### Verificación
 ```bash
-export PATH="/path/to/doti:$PATH"
-```
-
-Recarga tu configuración:
-```bash
-source ~/.zshrc  # o source ~/.bashrc
-```
-
-Ahora podrás ejecutar:
-```bash
-doti init
-doti add ~/.bashrc
+# Verificar instalación
 doti --help
+
+# Verificar versión
+pip show doti
+```
+
+### Actualización
+```bash
+# Para actualizar a la última versión
+cd /path/to/doti
+git pull
+pip install -e .
 ```
